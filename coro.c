@@ -245,6 +245,38 @@ trampoline (int sig)
          "\tpopl %ebp\n"
          "\tpopl %ecx\n"
          "\tjmpl *%ecx\n"
+      #elif defined(__arm64) && defined(__APPLE__)
+        #define NUM_SAVED 20
+        "\tsub	sp, sp, #176\n"
+	      "\tstr	x30, [sp, #160]\n"
+        "\tstr  x29, [sp, #8]\n"
+        "\tstp  x19, x20, [sp,#16]\n"
+        "\tstp  x21, x22, [sp,#32]\n"
+        "\tstp  x23, x24, [sp,#48]\n"
+        "\tstp  x25, x26, [sp,#64]\n"
+        "\tstp  x27, x28, [sp,#80]\n"
+        "\tstp  d8, d9, [sp, #96]\n"
+        "\tstp  d10, d11, [sp, #112]\n"
+        "\tstp  d12, d13, [sp, #128]\n"
+        "\tstp  d14, d15, [sp, #144]\n"
+        "\tmov  x2, sp\n"
+        "\tstr  x2, [x0]\n"
+        "\tldr  x2, [x1]\n"
+        "\tmov  sp,  x2\n"
+        "\tldr	x29, [sp, #8]\n"
+        "\tldp	x19, x20, [sp, #16]\n"
+        "\tldp	x21, x22, [sp, #32]\n"
+        "\tldp	x23, x24, [sp, #48]\n"
+        "\tldp	x25, x26, [sp, #64]\n"
+        "\tldp	x27, x28, [sp, #80]\n"
+        "\tldp  d8,  d9,  [sp, #96]\n"
+        "\tldp  d10, d11, [sp, #112]\n"
+        "\tldp  d12, d13, [sp, #128]\n"
+        "\tldp  d14, d15, [sp, #144]\n"
+        "\tldr	x30, [sp, #160]\n"
+	      "\tadd	sp, sp, #176\n"
+        "\tret\n"
+
 
        #elif CORO_ARM /* untested, what about thumb, neon, iwmmxt? */
 
@@ -448,7 +480,7 @@ coro_create (coro_context *ctx, coro_func coro, void *arg, void *sptr, size_t ss
 
 # elif CORO_ASM
 
-  #if __i386__ || __x86_64__
+  #if __i386__ || __x86_64__ || (defined(__arm64) && defined(__APPLE__))
     ctx->sp = (void **)(ssize + (char *)sptr);
     *--ctx->sp = (void *)abort; /* needed for alignment only */
     *--ctx->sp = (void *)coro_init;
@@ -466,7 +498,7 @@ coro_create (coro_context *ctx, coro_func coro, void *arg, void *sptr, size_t ss
   ctx->sp -= NUM_SAVED;
   memset (ctx->sp, 0, sizeof (*ctx->sp) * NUM_SAVED);
 
-  #if __i386__ || __x86_64__
+  #if __i386__ || __x86_64__ || (defined(__arm64) && defined(__APPLE__))
     /* done already */
   #elif CORO_ARM
     ctx->sp[0] = coro; /* r4 */
