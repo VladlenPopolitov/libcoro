@@ -92,6 +92,7 @@
  *            undefined behaviour before as mutexes would be unlocked on
  *            a different thread. overall, this might be slower than
  *            using a pipe for synchronisation, but pipes eat fd's...
+ * 2024-05-26 Arm64 support added and tested on Mac OS X for M1 (Vladlen Popolitov).
  */
 
 #ifndef CORO_H
@@ -153,7 +154,7 @@ extern "C" {
  * -DCORO_ASM
  *
  *    Hand coded assembly, known to work only on a few architectures/ABI:
- *    GCC + arm7/x86/IA32/amd64/x86_64 + GNU/Linux and a few BSDs. Fastest
+ *    GCC + arm7/x86/IA32/amd64/x86_64/ARM64 + GNU/Linux/MacOSX and a few BSDs. Fastest
  *    choice, if it works.
  *
  * -DCORO_PTHREAD
